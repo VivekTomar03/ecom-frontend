@@ -3,12 +3,32 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-
+import { BrowserRouter } from 'react-router-dom';
+import { ChakraProvider, extendTheme } from '@chakra-ui/react'
+import {Provider} from "react-redux"
+import { store } from './Redux/store';
 const root = ReactDOM.createRoot(document.getElementById('root'));
+const theme = extendTheme({
+  styles: {
+    global: {
+      '.slick-slide': {
+        zIndex: '1 !important',
+      },
+      '.slick-active': {
+        zIndex: '1 !important',
+      },
+    },
+  },
+});
+
 root.render(
-  <React.StrictMode>
+  <Provider store={store}>
+  <ChakraProvider theme={theme}>
+  <BrowserRouter>
     <App />
-  </React.StrictMode>
+  </BrowserRouter>
+  </ChakraProvider>
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function
