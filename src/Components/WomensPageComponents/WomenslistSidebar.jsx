@@ -34,7 +34,7 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
-function WomenslistSidebar({ setSearchTerm, searchTerm }) {
+function WomenslistSidebar({ setSearchTerm, searchTerm , catType }) {
   const [searchParams, setsearchParam] = useSearchParams();
   const [category, setCategory] = useState("");
   const navigate = useNavigate();
@@ -110,9 +110,10 @@ function WomenslistSidebar({ setSearchTerm, searchTerm }) {
     }
     if (sliderValue) obj.maxDiscountPercentage = sliderValue;
     setsearchParam(obj);
-  }, [brand, minprice, maxPrice, sliderValue]);
+  }, [brand, minprice, maxPrice, sliderValue , setSearchTerm]);
 
   useEffect(() => {
+    if (category === "womens") navigate("/womens");
     if (category === "mens") navigate("/mens");
     if (category === "kids") navigate("/kids");
   }, [category]);
@@ -180,7 +181,7 @@ function WomenslistSidebar({ setSearchTerm, searchTerm }) {
           <Text fontSize="lg" mb="4" fontWeight="bold">
             Category
           </Text>
-          <RadioGroup onChange={setCategory} defaultValue="womens">
+          <RadioGroup onChange={setCategory} defaultValue={catType ==="womens" ? "womens" : catType==="mens" ?"mens" :"kids"}>
             <VStack align="start" spacing="4">
               <Radio value="womens" colorScheme="teal">
                 Womens
@@ -206,7 +207,7 @@ function WomenslistSidebar({ setSearchTerm, searchTerm }) {
           <Text fontSize="lg" mb="4" fontWeight="bold">
             Brands
           </Text>
-          <VStack align="start" spacing="3">
+           {catType ==="womens" &&  <VStack align="start" spacing="3">
             <Checkbox
               onChange={handleBrandChnage}
               isChecked={brand.includes("Radha Rani creation")}
@@ -231,7 +232,34 @@ function WomenslistSidebar({ setSearchTerm, searchTerm }) {
             >
               Rimeline
             </Checkbox>
-          </VStack>
+          </VStack>}
+
+          {catType ==="mens" &&  <VStack align="start" spacing="3">
+            <Checkbox
+              onChange={handleBrandChnage}
+              isChecked={brand.includes("Raymond")}
+              value="Raymond"
+              colorScheme="teal"
+            >
+              Raymond
+            </Checkbox>
+            <Checkbox
+              onChange={handleBrandChnage}
+              value="3SIX5"
+              colorScheme="teal"
+              isChecked={brand.includes("3SIX5")}
+            >
+             3SIX5
+            </Checkbox>
+            <Checkbox
+              onChange={handleBrandChnage}
+              value="Babastore"
+              isChecked={brand.includes("Babastore")}
+              colorScheme="teal"
+            >
+              Babastore
+            </Checkbox>
+          </VStack>}
         </Box>
 
         <Box

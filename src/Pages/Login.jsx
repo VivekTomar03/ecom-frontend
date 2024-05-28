@@ -6,29 +6,35 @@ import {
   Input,
   Button,
   Stack,
-  Flex,
+
 } from "@chakra-ui/react";
-import { useAddNewUserMutation, useLoginUserMutation } from "../Redux/service/productsService/userAuth";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../Redux/feature/userAuthSlice";
+import ErrorPage from "../Components/Error";
 
 const Login = () => {
-  const [email , setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [addNewUser, {isError, isLoading}] = useLoginUserMutation()
-const navigate = useNavigate()
-  const handleSubmit = async() => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const {  loading, error } = useSelector((state) => state.userAuth);
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const handleSubmit = async () => {
     let data = {
-      email, password
+      email,
+      password,
+    };
+
+   let res = await  dispatch(loginUser(data));
+
+    if (res?.payload?.token) {
+      navigate("/");
     }
-let res = await addNewUser(data)
+  };
 
-if(res.data.token){
-  navigate("/")
-}
-document.cookie = `userData=${JSON.stringify(res)}; path=/`;
-document.cookie = `userDataLogin=${JSON.stringify(res?.data?.user)}; path=/`;
-
-
+  if(error){
+    return <ErrorPage/>
   }
   return (
     <Box bg={"#FDEEF1"} overflow="hidden" m={"auto"}>
@@ -43,6 +49,8 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data?.user)}; path=/`;
         mt={"10rem"}
         mb={5}
         bg={"white"}
+        pt={9}
+        pb={9}
       >
         <Stack spacing={4}>
           {/* <FormControl id="username">
@@ -51,11 +59,19 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data?.user)}; path=/`;
         </FormControl> */}
           <FormControl id="email">
             <FormLabel>Email</FormLabel>
-            <Input onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Enter your email" />
+            <Input
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="Enter your email"
+            />
           </FormControl>
           <FormControl id="password">
             <FormLabel>Password</FormLabel>
-            <Input onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Enter your password" />
+            <Input
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              placeholder="Enter your password"
+            />
           </FormControl>
           {/* <FormControl id="phoneNumber">
           <FormLabel>Phone Number</FormLabel>
@@ -65,7 +81,13 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data?.user)}; path=/`;
             pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
           />
         </FormControl> */}
-          <Button isLoading={isLoading} onClick={handleSubmit} _hover={{ bg: "#FF3F6C" }} color={"white"} bg="#FF3F6C">
+          <Button
+            isLoading={loading}
+            onClick={handleSubmit}
+            _hover={{ bg: "#FF3F6C" }}
+            color={"white"}
+            bg="#FF3F6C"
+          >
             Login
           </Button>
         </Stack>

@@ -6,6 +6,7 @@ import Topbar from './Components/Topbar';
 import Footer from './Components/Footer';
 
 function App() {
+  window.scroll(0,0)
   return (
     <Box >
      <Flex  bg={"white"} w={"100%"} zIndex={1000} mb={10} position={"fixed"} flexDir={"column"}>

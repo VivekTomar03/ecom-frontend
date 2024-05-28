@@ -29,8 +29,9 @@ import { CiShoppingCart } from "react-icons/ci";
 import { CiHeart } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
 import logo from "../assests/iloveimg-converted/logo.jpg";
-import { useSelector } from "react-redux";
-import { getUserDataFromCookies, getUserDataFromCookiesdata } from "./GetUserCookiesdata";
+import { useDispatch, useSelector } from "react-redux";
+
+import { logout } from "../Redux/feature/userAuthSlice";
 
 const Links = ["Download App", "Become Supplier", "News Room"];
 
@@ -48,32 +49,20 @@ const NavLink = ({ children }) => (
     {children}
   </Link>
 );
-export const updatecartNum = (userData) => {
-return userData
-}
 export default function Topbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-  const userData = getUserDataFromCookies();
 
-  const userDataLogin = getUserDataFromCookiesdata()
-  console.log(userDataLogin)
+  const {  user , username} = useSelector((state) => state.userAuth);
+ 
+  const dispatch = useDispatch();
+
   const handleLogout = () => {
-    let res = {
-      data:{
-        name:"",
-        token:"",
-        userType:"",
-        message:""
-      }
-    }
-    document.cookie = `userData=${JSON.stringify(res)}; path=/`;
+    dispatch(logout());
     navigate("/")
   }
 
- useEffect(() => {
-  updatecartNum(userData)
- },[userData])
+
   return (
     <>
       <Box px={4}>
@@ -141,19 +130,19 @@ export default function Topbar() {
               </MenuButton>
               <MenuList  zIndex={200000000}>
                 {/* <MenuItem onClick={() => navigate("/login")}>Login</MenuItem> */}
-                <MenuItem _hover={{bg:"white"}}>{LoginData(userData)}</MenuItem>
+                <MenuItem _hover={{bg:"white"}}>{LoginData(username)}</MenuItem>
                 <MenuDivider />
-                <MenuItem>Orders</MenuItem>
-                <MenuItem>Wishlist</MenuItem>
+                <MenuItem onClick={()=> navigate("/orders")}>Orders</MenuItem>
+                <MenuItem onClick={()=> navigate("/wishlist")}>Wishlist</MenuItem>
                 <MenuItem>Gift Card</MenuItem>
                 <MenuItem>Contact Us</MenuItem>
-               {userData?.data?.name &&  <MenuItem onClick={handleLogout}>Logout</MenuItem>}
+               {username &&  <MenuItem onClick={handleLogout}>Logout</MenuItem>}
               </MenuList>
             </Menu>
             <Flex onClick={() => navigate("/cart")} position="relative" alignItems="center">
               <Icon as={CiShoppingCart} w={8} h={8} />
             
-             {userDataLogin?.cart?.length>0 && <Box
+             {user?.cart?.length>0 && <Box
                 position="absolute"
                 top="-1"
                 right="-1"
@@ -167,12 +156,12 @@ export default function Topbar() {
                 justifyContent="center"
                 fontSize="12px"
               >
-                { userDataLogin?.cart?.length }
+                { user?.cart?.length }
               </Box>
              }
             </Flex>
             <Menu>
-              <Icon as={CiHeart} w={8} h={8} />
+              <Icon  onClick={()=> navigate("/wishlist")} as={CiHeart} w={8} h={8} />
             </Menu>
           </Flex>
         </Flex>
@@ -191,7 +180,7 @@ export default function Topbar() {
   );
 }
 
-function LoginData(userData){
+function LoginData(username){
   const navigate = useNavigate()
 
   
@@ -214,9 +203,9 @@ function LoginData(userData){
           color="teal.600"
         
         >
-          {userData?.data?.name ? `Welcome, ${userData.data.name}` : 'Welcome to Our Store'}
+          {username ? `Welcome, ${username}` : 'Welcome to Our Store'}
         </Text>
-        {!userData?.data?.name && (
+        {!username && (
           <>
             <Text 
               fontSize={{ base: "sm", md: "md" }} 

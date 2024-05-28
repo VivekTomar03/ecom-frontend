@@ -4,15 +4,20 @@ import { Badge, Box, Button, Divider, Flex, FormControl, HStack, Image, Input, R
 import { getUserDataFromCookiesdata } from '../Components/GetUserCookiesdata';
 import { useReqmoveCartItemMutation } from '../Redux/service/productsService/userAuth';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { removeCartItem, updateOrders } from '../Redux/feature/userAuthSlice';
+import EmptyCart from '../Components/EmptyCart';
 
 const Cart = () => {
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('');
-  const userDataLogin = getUserDataFromCookiesdata()
+ 
+  const {  user:userDataLogin ,cartUpdateStatus } = useSelector((state) => state.userAuth);
+
   const [reqmoveCartItem, {data}] = useReqmoveCartItemMutation()
   const navigate = useNavigate()
-// const {cart} = userDataLogin
 
+const dispatch = useDispatch()
 
 
   const handleNextStep = () => {
@@ -20,15 +25,19 @@ const Cart = () => {
   };
 
   const handlePayment = async () => {
-    setStep(step + 1);
- let res = await reqmoveCartItem(userDataLogin?.cart);
-document.cookie = `userDataLogin=${JSON.stringify(res?.data)}; path=/`;
-
-    setTimeout(() => {
-      // Navigate to home after 3 seconds
-      // window.location.href = '/';
-      navigate("/")
-    }, 3000);
+   
+ let res = await  dispatch(updateOrders(userDataLogin?.cart));
+console.log(res, "res cart orders")
+if(res?.type === "userAuth/updateOrders/fulfilled"){
+  toast({
+    title: "Order Placed Successfully",
+    position: "bottom",
+    status: "success",
+    duration: 2000,
+    isClosable: true,
+  });
+  navigate("/")
+}
   };
 
 
@@ -94,19 +103,57 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data)}; path=/`;
   const handleQuantityChange = (e) => {
     setQuantity(parseInt(e.target.value, 10));
   };
+
+  const handleItemRemovefromCart = async(id) => {
+ let res = await   dispatch(removeCartItem(id));
+   if(res.payload){
+    toast({
+      title: "Item remove from Cart Successfully",
+      position: "bottom",
+      status: "success",
+      duration: 2000,
+      isClosable: true,
+    });
+   }
+  }
+
+  if(!userDataLogin?.cart || userDataLogin?.cart?.length===0) return <EmptyCart />
   return (
    <Box>
      <Box p={4}>
     { step === 1 && 
-      <Flex p={5} gap={10} mt={{ base: '10rem', md: '10rem' }} flexDirection={{ base: 'column', lg: 'row' }}>
-      <Flex flexDir="column" w={{ base: '100%', lg: '60%' }}>
-        {userDataLogin?.cart?.map((el, index) => (
-          <Flex key={index} gap={3} p={5} borderWidth="1px" borderRadius="lg" mb={4} flexDirection={{ base: 'column', md: 'row' }}>
-            <Image src={el._image} alt={el.title} boxSize="150px" objectFit="cover" />
-            <Flex flexDirection="column" flex="1">
-              <Text fontWeight="bold">{el.brand}</Text>
-              <Text>{el.title}</Text>
-              <HStack wrap="wrap" spacing={2}>
+      <>
+      <Flex
+        gap={10}
+        mt={{ base: '10rem', md: '10rem' }}
+        flexDirection={{ base: 'column', lg: 'row' }}
+        justifyContent="space-between"
+        
+      >
+        <Box flex="1" p={5}>
+          <Text fontSize="2xl" mb={4} fontWeight="bold" textAlign="center">
+            Delivery Address
+          </Text>
+          <Box mb={4} p={5} borderWidth="1px" borderRadius="lg" boxShadow="lg">
+            <Text fontSize="md" color="gray.600">
+              1234 Chakra UI Street
+            </Text>
+            <Text fontSize="md" color="gray.600">
+              React City, JS 12345
+            </Text>
+          </Box>
+        </Box>
+      </Flex>
+
+      <Flex p={5} gap={10} flexDirection={{ base: 'column', lg: 'row' }}>
+        <Flex flexDir="column" w={{ base: '100%', lg: '60%' }}>
+          {userDataLogin?.cart?.map((el, index) => (
+            <Flex key={index} gap={3} p={5} borderWidth="1px" borderRadius="lg" mb={4} flexDirection={{ base: 'column', md: 'row' }} boxShadow="lg" _hover={{ boxShadow: "xl" }}>
+              <Image src={el._image} alt={el.title} boxSize="150px" objectFit="cover" borderRadius="lg" />
+              <Flex flexDirection="column" flex="1">
+                <Text fontWeight="bold" fontSize="lg">{el.brand}</Text>
+                <Text fontSize="md">{el.title}</Text>
+                <HStack wrap="wrap" spacing={2} mt={2}>
                   {el?.size?.split(',').map((size, index) => (
                     <Button
                       key={index}
@@ -121,131 +168,87 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data)}; path=/`;
                     </Button>
                   ))}
                 </HStack>
-              <Flex alignItems="center" mt={2} gap={2}>
-                <Text>QTY</Text>
-                <Select value={quantity} onChange={handleQuantityChange} maxW="70px">
-                  {[...Array(10).keys()].map((num) => (
-                    <option key={num + 1} value={num + 1}>
-                      {num + 1}
-                    </option>
-                  ))}
-                </Select>
+                <Flex alignItems="center" mt={2} gap={2}>
+                  <Text>QTY</Text>
+                  <Select value={quantity} onChange={handleQuantityChange} maxW="70px">
+                    {[...Array(10).keys()].map((num) => (
+                      <option key={num + 1} value={num + 1}>
+                        {num + 1}
+                      </option>
+                    ))}
+                  </Select>
+
+                  <Button 
+                  onClick={() => handleItemRemovefromCart(el._id)}
+                   ml={3}
+                   colorScheme="red"
+                   variant="solid"
+                   size="sm"
+                   borderRadius="md"
+                   _hover={{ bg: 'red.500' }}
+                  >Remove</Button>
+                </Flex>
+                <HStack spacing={2} alignItems="center" mt={2}>
+                  <Text fontWeight="bold">{"RS " + el.price2}</Text>
+                  <Text textDecor="line-through" color="gray.500">{"RS " + el.price1}</Text>
+                  <Badge colorScheme="pink">{el.discount}</Badge>
+                </HStack>
+                <Text mt={2} fontSize="sm" color="gray.600">14 days return available</Text>
+                <Text fontSize="sm" color="gray.600">Express delivery in 3 days</Text>
               </Flex>
-              <HStack spacing={2} alignItems="center" mt={2}>
-                <Text fontWeight="bold">{"RS " + el.price2}</Text>
-                <Text textDecor="line-through" color="gray.500">{"RS " + el.price1}</Text>
-                <Badge colorScheme="pink">{el.discount}</Badge>
-              </HStack>
-              <Text mt={2}>14 days return available</Text>
-              <Text>Express delivery in 3 days</Text>
             </Flex>
-          </Flex>
-        ))}
-      </Flex>
-      <Flex flexDir="column" w={{ base: '100%', lg: '40%' }}>
-        <Box p={5} borderWidth="1px" borderRadius="lg" mb={4}>
-          <Text fontWeight="bold" mb={2}>Apply Coupons</Text>
-          <Flex gap={2}>
-            <Input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="Enter coupon code" />
-            <Button colorScheme="teal" onClick={handleCouponApply}>
-              Apply
-            </Button>
-          </Flex>
-        </Box>
-        <Box p={5} borderWidth="1px" borderRadius="lg">
-          <Text fontWeight="bold" mb={2}>Price Details</Text>
-          <Flex justifyContent="space-between">
-            <Text>Total MRP</Text>
-            <Text>{"RS " + summary.totalMRP}</Text>
-          </Flex>
-          <Flex justifyContent="space-between">
-            <Text>Discount</Text>
-            <Text>-{"RS " + summary.totalDiscount}</Text>
-          </Flex>
-          <Flex justifyContent="space-between">
-            <Text>Coupon Discount</Text>
-            <Text>-{"RS " + summary.couponDiscount}</Text>
-          </Flex>
-          <Flex justifyContent="space-between">
-            <Text>Platform Fee</Text>
-            <Text>{"RS " + summary.platformFee}</Text>
-          </Flex>
-          <Flex justifyContent="space-between">
-            <Text>Shipping Fee</Text>
-            <Text>{summary.shippingFee === 0 ? "Free" : "RS " + summary.shippingFee}</Text>
-          </Flex>
-          <Divider my={3} />
-          <Flex justifyContent="space-between" fontWeight="bold">
-            <Text>Total Amount</Text>
-            <Text>{"RS " + Math.floor(summary.totalAmount)}</Text>
-          </Flex>
-          <Button colorScheme="teal" mt={4} w="full" onClick={handleNextStep}>
-            Continue
-          </Button>
-        </Box>
-      </Flex>
-    </Flex>
-}
-     
-<Box p={5}>
-      {step === 2 && (
-        <Flex
-          gap={10}
-          mt={{ base: '2rem', md: '10rem' }}
-          flexDirection={{ base: 'column', lg: 'row' }}
-          justifyContent="space-between"
-        >
-          <Box flex="1"  p={5} borderWidth="1px" borderRadius="lg" boxShadow="lg">
-            <Text fontSize="2xl" mb={4} fontWeight="bold" textAlign="center">
-              Delivery Address
-            </Text>
-            <Box mb={4} p={5} borderWidth="1px" borderRadius="lg" boxShadow="lg">
-              <Text fontSize="md" color="gray.600">
-                1234 Chakra UI Street
-              </Text>
-              <Text fontSize="md" color="gray.600">
-                React City, JS 12345
-              </Text>
-            </Box>
-            <Button colorScheme="teal" w="full" onClick={handleNextStep}>
-              Proceed to Payment
-            </Button>
+          ))}
+        </Flex>
+
+        <Flex flexDir="column" w={{ base: '100%', lg: '40%' }}>
+          <Box p={5} borderWidth="1px" borderRadius="lg" mb={4} boxShadow="lg">
+            <Text fontWeight="bold" mb={2}>Apply Coupons</Text>
+            <Flex gap={2}>
+              <Input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="Enter coupon code" />
+              <Button colorScheme="teal" onClick={handleCouponApply}>
+                Apply
+              </Button>
+            </Flex>
           </Box>
-          <Box flex="1" p={5} borderWidth="1px" borderRadius="lg" boxShadow="lg">
-            <Text fontWeight="bold" mb={4} fontSize="xl" textAlign="center">
-              Price Details
-            </Text>
-            <Flex justifyContent="space-between" mb={2}>
+
+          <Box p={5} borderWidth="1px" borderRadius="lg" boxShadow="lg">
+            <Text fontWeight="bold" mb={2}>Price Details</Text>
+            <Flex justifyContent="space-between">
               <Text>Total MRP</Text>
               <Text>{"RS " + summary.totalMRP}</Text>
             </Flex>
-            <Flex justifyContent="space-between" mb={2}>
+            <Flex justifyContent="space-between">
               <Text>Discount</Text>
               <Text>-{"RS " + summary.totalDiscount}</Text>
             </Flex>
-            <Flex justifyContent="space-between" mb={2}>
+            <Flex justifyContent="space-between">
               <Text>Coupon Discount</Text>
               <Text>-{"RS " + summary.couponDiscount}</Text>
             </Flex>
-            <Flex justifyContent="space-between" mb={2}>
+            <Flex justifyContent="space-between">
               <Text>Platform Fee</Text>
               <Text>{"RS " + summary.platformFee}</Text>
             </Flex>
-            <Flex justifyContent="space-between" mb={2}>
+            <Flex justifyContent="space-between">
               <Text>Shipping Fee</Text>
               <Text>{summary.shippingFee === 0 ? "Free" : "RS " + summary.shippingFee}</Text>
             </Flex>
             <Divider my={3} />
-            <Flex justifyContent="space-between" fontWeight="bold" fontSize="lg">
+            <Flex justifyContent="space-between" fontWeight="bold">
               <Text>Total Amount</Text>
               <Text>{"RS " + Math.floor(summary.totalAmount)}</Text>
             </Flex>
-           
+            <Button colorScheme="teal" mt={4} w="full" onClick={handleNextStep}>
+              Continue
+            </Button>
           </Box>
         </Flex>
-      )}
+      </Flex>
+    </>
+}
+
     </Box>
-      {step === 3 && (
+      {step === 2 && (
          <Flex
          gap={10}
          mt={{ base: '2rem', md: '10rem' }}
@@ -266,7 +269,7 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data)}; path=/`;
           </Stack>
         </RadioGroup>
       </FormControl>
-      <Button  mt={8} w={"full"} colorScheme="teal" onClick={handlePayment}>
+      <Button isLoading={cartUpdateStatus}  mt={8} w={"full"} colorScheme="teal" onClick={handlePayment}>
         Pay Now
       </Button>
          </Box>
@@ -315,7 +318,7 @@ document.cookie = `userDataLogin=${JSON.stringify(res?.data)}; path=/`;
        </Box>
       )}
     </Box>
-   </Box>
+  //  </Box>
   );
 };
 

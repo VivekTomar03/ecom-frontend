@@ -89,6 +89,8 @@ const WomensProducts = () => {
   const handlePagination = (val) => {
     setPage(val);
   };
+
+  
   if (data?.length === 0) {
     return <EmptyState searchTerm={searchTerm} setSearchTerm={setSearchTerm} />;
   }
@@ -122,6 +124,7 @@ const WomensProducts = () => {
         <WomenslistSidebar
           setSearchTerm={setSearchTerm}
           searchTerm={searchTerm}
+          catType={"womens"}
         />
         <Flex gap={5} flexDir={"column"}>
           <Box p="4" w={{ base: "full", sm: "full", md: "full", lg: "40%" }}>
@@ -142,7 +145,7 @@ const WomensProducts = () => {
           </Box>
           <SimpleGrid spacing={6} columns={{ base: 1, sm: 2, md: 3, lg: 3 }}>
             {data?.products?.map((el) => (
-              <WomensProductList key={el._id} {...el} />
+              <WomensProductList key={el._id}  data={el} />
             ))}
           </SimpleGrid>
 

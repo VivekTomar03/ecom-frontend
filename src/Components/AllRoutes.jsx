@@ -9,6 +9,8 @@ import Register from '../Pages/Register';
 import ProductDetail from './ProductDetail';
 import ErrorPage from './Error';
 import Cart from '../Pages/Cart';
+import Orders from '../Pages/Orders';
+import WishList from '../Pages/WishList';
 
 const AllRoutes = () => {
   return (
@@ -24,6 +26,9 @@ const AllRoutes = () => {
 
       {/* {"Private route"} */}
       <Route path='/cart' element={<Cart/>}/>
+      <Route path='/orders' element={<Orders/>}/>
+      <Route path='/wishlist' element={<WishList/>}/>
+
 
     </Routes>
   );
